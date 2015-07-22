@@ -825,6 +825,7 @@
                                             </tableColumns>
                                             <connections>
                                                 <binding destination="Rax-Ds-ZQP" name="content" keyPath="arrangedObjects" id="nTH-is-A73"/>
+                                                <binding destination="Rax-Ds-ZQP" name="selectionIndexes" keyPath="selectionIndexes" previousBinding="nTH-is-A73" id="7zH-Ec-HOR"/>
                                             </connections>
                                         </tableView>
                                     </subviews>
@@ -859,6 +860,7 @@
                     </view>
                     <connections>
                         <outlet property="arrayController" destination="Rax-Ds-ZQP" id="Gmf-0v-eBV"/>
+                        <outlet property="tableView" destination="stR-lH-M9W" id="ETK-vT-oEH"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

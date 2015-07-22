@@ -11,17 +11,19 @@ import Cocoa
 class IMRequest: NSObject {
     dynamic var timestamp : NSDate? = nil
     dynamic var loading : Bool = false
+    dynamic var status : NSString? = nil
     dynamic var icon : NSImage? = nil
     dynamic var readableError : NSString? = nil
 }
 
-class ViewController: NSViewController {
+class ViewController: NSViewController, NSTableViewDelegate {
 
     let queue = NSOperationQueue()
     var timer : NSTimer? = nil
     var dateFormat = NSDateFormatter()
     
     @IBOutlet var arrayController: NSArrayController!
+    @IBOutlet weak var tableView: NSTableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,10 +42,10 @@ class ViewController: NSViewController {
 
     func update() {
         
-        var dict = IMRequest()
-        dict.timestamp = NSDate()
-        dict.loading = true
-        self.arrayController.addObject(dict)
+        var req = IMRequest()
+        req.timestamp = NSDate()
+        req.loading = true
+        self.arrayController.addObject(req)
 
         let url = NSURL(string: "http://speedtest.wdc01.softlayer.com/downloads/test10.zip")
         let request = NSURLRequest(URL: url!, cachePolicy: NSURLRequestCachePolicy.ReloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 30)
@@ -57,28 +59,32 @@ class ViewController: NSViewController {
                 if let err = error {
                     print("\(dateString): error: \(error.localizedDescription)\n")
                     
-                    dict.icon = NSImage(named: "NSStatusUnavailable")
-                    dict.readableError = error.localizedDescription
+                    req.status = "error"
+                    req.icon = NSImage(named: "NSStatusUnavailable")
+                    req.readableError = error.localizedDescription
                     
                 } else if let htmlResponse = response as? NSHTTPURLResponse {
                     
                     if htmlResponse.statusCode != 200 {
                         print("\(dateString): status: \(htmlResponse.statusCode)\n")
                         
-                        dict.icon = NSImage(named: "NSStatusUnavailable")
-                        dict.readableError = "Status: \(htmlResponse.statusCode)"
-                        self.arrayController.addObject(dict)
+                        req.status = "error"
+                        req.icon = NSImage(named: "NSStatusUnavailable")
+                        req.readableError = "Status: \(htmlResponse.statusCode)"
+                        self.arrayController.addObject(req)
                     } else {
-                        dict.icon = NSImage(named: "NSStatusAvailable")
+                        req.status = "ok"
+                        req.icon = NSImage(named: "NSStatusAvailable")
                         print("\(dateString): ok\n")
                     }
                     
                 } else {
-                    dict.icon = NSImage(named: "NSStatusAvailable")
+                    req.status = "ok"
+                    req.icon = NSImage(named: "NSStatusAvailable")
                     print("\(dateString): ok\n")
                 }
                 
-                dict.loading = false
+                req.loading = false
 
                 self.reschedule()
                 
@@ -93,5 +99,23 @@ class ViewController: NSViewController {
         
     }
 
+    func copy(sender: AnyObject) {
+        let selectedObjects = arrayController.selectedObjects as! [IMRequest]
+        let pasteboard = NSPasteboard.generalPasteboard()
+        
+        pasteboard.declareTypes([NSPasteboardTypeString], owner: self)
+        
+        var itemsString = ""
+        for request in selectedObjects {
+            let timestamp = dateFormat.stringFromDate(request.timestamp!)
+            let status = request.status ?? ""
+            let error = request.readableError ?? ""
+            itemsString += "\(status)\t\(timestamp)\t\(error)\n"
+        }
+        
+        pasteboard.setString(itemsString, forType: NSPasteboardTypeString)
+
+    }
+    
 }
 
